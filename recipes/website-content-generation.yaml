@@ -1,0 +1,533 @@
+name: "website-content-generation"
+description: |
+  Generate and validate web content from ecosystem source files.
+  
+  This recipe takes a content outline that maps website sections to source files,
+  generates content based on those sources, validates accuracy, and outputs
+  structured content ready for web consumption.
+  
+  Key features:
+  - Source-driven content generation (no fabrication)
+  - Per-section and whole-page validation
+  - URL accessibility verification
+  - Source traceability tracking
+  - Change detection via source hashing
+
+version: "1.0.0"
+
+context:
+  # Required inputs
+  outline_path: ""              # Path to the content outline JSON
+  output_dir: "./generated"     # Where to write output files
+  
+  # Optional configuration
+  repos_dir: "./repos"          # Where to clone source repos
+  validate_urls: true           # Whether to run URL validation
+  skip_generation: false        # If true, only validate existing content
+  sections_to_process: []       # Empty = all sections; or list specific IDs
+  
+  # Internal state (populated during execution)
+  outline: null
+  source_hashes: {}
+  generated_content: {}
+  validation_results: {}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 1: INITIALIZATION
+# Prepare workspace, clone repos, fetch source files
+# ═══════════════════════════════════════════════════════════════════════════════
+stages:
+  - name: "initialization"
+    # Set up workspace and fetch source files
+    steps:
+      # Read and validate the content outline
+      - id: "parse-outline"
+        agent: "foundation:file-ops"
+        prompt: |
+          Read and parse the content outline from: {{outline_path}}
+          
+          Validate that the outline has:
+          1. A valid _meta section with name and allowed_source_repos
+          2. A content_sections array with at least one section
+          3. Each section has: id, content_type, sources, and prompt
+          
+          Return the parsed outline as JSON, or report any validation errors.
+        parse_json: true
+        output: "outline"
+
+      # Extract content_sections to a top-level variable for foreach iteration
+      # Using bash+jq to extract data exactly as-is, avoiding agent interpretation
+      - id: "extract-sections"
+        type: "bash"
+        command: |
+          jq '.content_sections' "{{outline_path}}"
+        parse_json: true
+        output: "content_sections"
+
+      # Create working directories
+      - id: "setup-workspace"
+        type: "bash"
+        command: |
+          mkdir -p "{{output_dir}}"
+          mkdir -p "{{repos_dir}}"
+          mkdir -p "{{output_dir}}/sections"
+          mkdir -p "{{output_dir}}/validation"
+          echo '{"status": "workspace_ready", "dirs": ["{{output_dir}}", "{{repos_dir}}"]}'
+        parse_json: true
+
+      # Clone or update source repositories
+      - id: "clone-source-repos"
+        agent: "foundation:git-ops"
+        prompt: |
+          Clone or update repositories to {{repos_dir}}.
+          
+          Official repos (from microsoft org) - clone from https://github.com/microsoft/{repo_name}:
+          {{json outline._meta.allowed_source_repos}}
+          
+          Community repos (if needed for validation) - clone from https://github.com/{repo_name}:
+          {{json outline._meta.community_source_repos}}
+          
+          For each repo in both lists:
+          1. If it exists, run `git fetch --all && git pull`
+          2. If it doesn't exist, clone it
+          3. Record the current HEAD commit hash
+          
+          Return a JSON object mapping repo names to their current commit hashes.
+        parse_json: true
+        output: "repo_commits"
+
+      # Hash source files for change detection
+      - id: "compute-source-hashes"
+        type: "bash"
+        command: |
+          cd "{{repos_dir}}"
+          echo '{'
+          first=true
+          for repo in */; do
+            repo_name="${repo%/}"
+            for file in $(find "$repo_name" -name "*.md" -type f 2>/dev/null | head -20); do
+              hash=$(sha256sum "$file" | cut -d' ' -f1)
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo ','
+              fi
+              echo "  \"$file\": \"$hash\""
+            done
+          done
+          echo '}'
+        parse_json: true
+        output: "source_hashes"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 2: CONTENT GENERATION
+# Generate content for each section based on sources
+# ═══════════════════════════════════════════════════════════════════════════════
+  - name: "generation"
+    # Generate content for each website section
+    approval:
+      required: true
+      prompt: |
+        Source files fetched and hashed.
+        
+        Ready to generate content for the following sections:
+        {{json content_sections}}
+        
+        Approve to proceed with content generation?
+    
+    steps:
+      # Generate content for each section
+      # Note: To process specific sections only, filter outline.content_sections before passing to recipe
+      - id: "generate-sections"
+        foreach: "{{content_sections}}"
+        as: "section"
+        agent: "foundation:zen-architect"
+        provider: "anthropic"
+        model: "claude-sonnet-4-*"
+        
+        prompt: |
+          Generate content for website section: {{section.id}}
+          
+          == SECTION METADATA ==
+          Content type: {{section.content_type}}
+          Validation priority: {{section.validation_priority}}
+          
+          Full section configuration:
+          {{json section}}
+          
+          == SOURCE FILES ==
+          Read the source files listed in section.sources from {{repos_dir}}.
+          Each source entry has: repo, file_path, contribution, and optionally a section to focus on.
+          
+          == GENERATION INSTRUCTIONS ==
+          {{section.prompt}}
+          
+          == OUTPUT REQUIREMENTS ==
+          If section.output_schema is defined, return JSON matching that schema.
+          Otherwise, return JSON with appropriate structure for content_type "{{section.content_type}}":
+          - code: {"value": "exact code string", "source_ref": "file:line"}
+          - prose: {"text": "generated text", "source_refs": ["file:line", ...]}
+          - list: {"items": [{"title": "", "description": "", "source_ref": ""}]}
+          - structured_list: {"items": [{...fields per schema...}]}
+          - link: {"text": "", "url": "", "source_ref": ""}
+          - ordered_list: {"items": [{"step_number": 1, "title": "", ...}]}
+          
+          == CRITICAL RULES ==
+          1. BASE ALL CONTENT ON SOURCE FILES - read them first
+          2. For content_type "code" - use EXACT text from source, no modifications
+          3. For URLs - use EXACT URLs from source, verify they look valid
+          4. For lists - include ONLY items that exist in source files
+          5. Include source_ref for traceability (format: "repo/path:line" or "repo/path:section")
+          6. If information is not in sources, DO NOT INVENT IT - omit or note as unavailable
+          7. Check section.current_website_value for reference (may be incorrect - generate from sources)
+          8. Check section.known_issues for issues to be aware of
+        
+        parse_json: true
+        collect: "generated_sections"
+
+      # Save all generated sections to files
+      - id: "save-section-outputs"
+        agent: "foundation:file-ops"
+        prompt: |
+          Save each generated section to its own JSON file in {{output_dir}}/sections/.
+          
+          Generated sections data:
+          {{json generated_sections}}
+          
+          For each section result, save it to: {{output_dir}}/sections/{section_id}.json
+          
+          Return a JSON object with the list of files saved.
+        parse_json: true
+        output: "saved_sections"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 3: VALIDATION
+# Validate generated content for accuracy and completeness
+# ═══════════════════════════════════════════════════════════════════════════════
+  - name: "validation"
+    # Validate generated content
+    approval:
+      required: true
+      prompt: |
+        Content generation complete.
+        
+        Generated sections:
+        {{json generated_sections}}
+        
+        Ready to validate:
+        1. URL accessibility (for links and structured_lists)
+        2. Source traceability (all content traces to source files)
+        3. No fabrication check (nothing invented)
+        4. Whole-page consistency
+        
+        Approve to proceed with validation?
+    
+    steps:
+      # URL Validation (parallel for speed)
+      # Check all URLs are accessible
+      - id: "validate-urls"
+        condition: "{{validate_urls}} == true"
+        type: "bash"
+        command: |
+          cd "{{output_dir}}"
+          echo '{"url_checks": ['
+          first=true
+          
+          # Extract all URLs from generated content
+          urls=$(grep -rhoE 'https?://[^"]+' sections/*.json | sort -u)
+          
+          for url in $urls; do
+            # Skip malformed URLs
+            if [[ ! "$url" =~ ^https?:// ]]; then
+              continue
+            fi
+            
+            # HTTP HEAD request with timeout
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -L "$url" 2>/dev/null || echo "000")
+            
+            if [ "$first" = true ]; then
+              first=false
+            else
+              echo ','
+            fi
+            
+            if [ "$status" = "200" ] || [ "$status" = "301" ] || [ "$status" = "302" ]; then
+              echo "  {\"url\": \"$url\", \"status\": $status, \"valid\": true}"
+            else
+              echo "  {\"url\": \"$url\", \"status\": $status, \"valid\": false}"
+            fi
+          done
+          
+          echo ']}'
+        parse_json: true
+        output: "url_checks"
+
+      # Source Traceability Validation
+      # Verify all content traces to source files
+      - id: "validate-traceability"
+        agent: "foundation:zen-architect"
+        prompt: |
+          Validate source traceability for all generated content.
+          
+          == GENERATED CONTENT ==
+          {{json generated_sections}}
+          
+          == SOURCE FILES LOCATION ==
+          {{repos_dir}}
+          
+          == VALIDATION TASK ==
+          For each piece of generated content:
+          1. Check that it has a source_ref or source_refs field
+          2. Verify the referenced source file exists
+          3. Verify the content actually appears in or is derived from that source
+          
+          Return JSON:
+          {
+            "traced": [
+              {"section": "id", "item": "description", "source": "file:line", "status": "verified"}
+            ],
+            "untraced": [
+              {"section": "id", "item": "description", "issue": "no source_ref provided"}
+            ],
+            "fabricated": [
+              {"section": "id", "item": "description", "issue": "content not found in claimed source"}
+            ],
+            "summary": {
+              "total_items": N,
+              "traced": N,
+              "untraced": N,
+              "fabricated": N,
+              "traceability_score": 0.0-1.0
+            }
+          }
+          
+          CRITICAL: Items in "fabricated" are serious issues - content that claims a source but isn't actually there.
+        parse_json: true
+        output: "traceability_results"
+
+      # Whole-Page Consistency Check
+      - id: "validate-consistency"
+        agent: "foundation:zen-architect"
+        prompt: |
+          Review all generated content for whole-page consistency.
+          
+          == ALL GENERATED CONTENT ==
+          {{json generated_sections}}
+          
+          == CONSISTENCY CHECKS ==
+          1. No contradictions between sections
+          2. Terminology is consistent (e.g., "bundle" vs "module" usage)
+          3. Tone is consistent across all prose sections
+          4. All cross-references are valid (if section A mentions something from section B)
+          5. Version numbers/dates are consistent if mentioned in multiple places
+          
+          Return JSON:
+          {
+            "consistent": true/false,
+            "issues": [
+              {"sections": ["id1", "id2"], "issue": "description of inconsistency"}
+            ],
+            "warnings": [
+              {"section": "id", "warning": "minor issue that should be noted"}
+            ]
+          }
+        parse_json: true
+        output: "consistency_results"
+
+      # Completeness Check Against Outline
+      # Ensure all required sections were generated
+      - id: "validate-completeness"
+        type: "bash"
+        command: |
+          cd "{{output_dir}}/sections"
+          
+          # Count generated files
+          generated=$(ls -1 *.json 2>/dev/null | wc -l)
+          
+          # List what was generated
+          files=$(ls -1 *.json 2>/dev/null | sed 's/.json$//' | jq -R . | jq -s .)
+          
+          echo "{\"generated_count\": $generated, \"generated_sections\": $files}"
+        parse_json: true
+        output: "completeness_results"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE 4: OUTPUT ASSEMBLY
+# Combine all content and validation into final output
+# ═══════════════════════════════════════════════════════════════════════════════
+  - name: "output"
+    # Assemble final output
+    steps:
+      # Summarize validation results
+      - id: "compute-validation-summary"
+        agent: "foundation:zen-architect"
+        prompt: |
+          Create a validation summary from all validation results.
+          
+          == URL CHECKS ==
+          {{json url_checks}}
+          
+          == TRACEABILITY ==
+          {{json traceability_results}}
+          
+          == CONSISTENCY ==
+          {{json consistency_results}}
+          
+          == COMPLETENESS ==
+          {{json completeness_results}}
+          
+          Return a summary JSON:
+          {
+            "overall_status": "PASS" | "FAIL" | "WARN",
+            "url_validation": {
+              "status": "PASS/FAIL",
+              "total": N,
+              "passed": N,
+              "failed": N,
+              "failed_urls": ["url1", "url2"]
+            },
+            "traceability": {
+              "status": "PASS/FAIL",
+              "score": 0.0-1.0,
+              "fabricated_count": N
+            },
+            "consistency": {
+              "status": "PASS/FAIL",
+              "issue_count": N
+            },
+            "completeness": {
+              "status": "PASS/FAIL",
+              "sections_expected": N,
+              "sections_generated": N
+            },
+            "critical_issues": [
+              "Description of any critical issues that must be fixed"
+            ],
+            "warnings": [
+              "Description of warnings that should be reviewed"
+            ]
+          }
+          
+          PASS = no critical issues
+          WARN = minor issues but usable
+          FAIL = critical issues that must be fixed before publishing
+        parse_json: true
+        output: "validation_summary"
+
+      # Combine everything into final output file with embedded web_element mapping
+      # Using an agent step that writes the file directly (more reliable than bash heredocs)
+      - id: "assemble-final-output"
+        agent: "foundation:file-ops"
+        prompt: |
+          Create the unified website-content.json file at {{output_dir}}/website-content.json
+          
+          IMPORTANT: Merge content_sections metadata WITH generated_sections content.
+          Each content entry must include BOTH the web_element mapping AND the generated content.
+          
+          == DATA TO MERGE ==
+          Outline metadata: {{json outline._meta}}
+          Content sections (has web_element info): {{json content_sections}}
+          Generated sections (has the content): {{json generated_sections}}
+          Source hashes: {{json source_hashes}}
+          Repo commits: {{json repo_commits}}
+          Validation summary: {{json validation_summary}}
+          
+          == REQUIRED OUTPUT STRUCTURE ==
+          {
+            "_meta": {
+              "generated_at": "[ISO timestamp]",
+              "outline_name": "[from outline._meta.name]",
+              "outline_version": "[from outline._meta.version]",
+              "target_site": "[from outline._meta.target_site]",
+              "source_repos": {
+                "official": [from outline._meta.allowed_source_repos],
+                "community": [from outline._meta.community_source_repos]
+              }
+            },
+            "source_tracking": {
+              "repo_commits": [repo_commits data],
+              "file_hashes": [source_hashes data]
+            },
+            "content": [
+              // For EACH section, merge content_sections[i] with generated_sections[i]:
+              {
+                "id": "[from content_sections[i].id]",
+                "web_element": [from content_sections[i].web_element],  // WHERE on page
+                "content_type": "[from content_sections[i].content_type]",
+                "validation_priority": "[from content_sections[i].validation_priority]",
+                "generated": [from generated_sections[i]],  // WHAT to put there
+                "generation_prompt": "[from content_sections[i].prompt]",
+                "validation_rules": [from content_sections[i].validation.rules],
+                "known_issues": [from content_sections[i].known_issues or null],
+                "current_website_value": [from content_sections[i].current_website_value or null]
+              }
+              // ... repeat for all 13 sections
+            ],
+            "validation_summary": [validation_summary data]
+          }
+          
+          CRITICAL: The content array must have exactly 13 entries, one per section.
+          Each entry MUST include the web_element from content_sections AND the generated content.
+          
+          Write this merged JSON to the file.
+
+      # Generate human-readable validation report
+      - id: "generate-validation-report"
+        agent: "foundation:zen-architect"
+        prompt: |
+          Generate a human-readable validation report in Markdown format.
+          
+          == DATA ==
+          Validation Summary: {{json validation_summary}}
+          URL Checks: {{json url_checks}}
+          Traceability: {{json traceability_results}}
+          Consistency: {{json consistency_results}}
+          
+          == REPORT STRUCTURE ==
+          # Website Content Validation Report
+          
+          Generated: [timestamp]
+          Overall Status: [PASS/WARN/FAIL with emoji]
+          
+          ## Summary
+          [Brief overview of validation results]
+          
+          ## URL Validation
+          [Table of URL check results, highlight failures]
+          
+          ## Source Traceability
+          [Summary of traceability, list any fabricated content]
+          
+          ## Consistency
+          [Any inconsistencies found]
+          
+          ## Critical Issues
+          [List of issues that MUST be fixed]
+          
+          ## Warnings
+          [List of warnings to review]
+          
+          ## Recommendations
+          [Actionable recommendations]
+          
+          Write this report to {{output_dir}}/validation-report.md
+
+      # Print final summary
+      - id: "final-summary"
+        type: "bash"
+        command: |
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+          echo "  WEBSITE CONTENT GENERATION COMPLETE"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "Output files:"
+          echo "  - {{output_dir}}/website-content.json  (structured content)"
+          echo "  - {{output_dir}}/validation-report.md  (human-readable report)"
+          echo "  - {{output_dir}}/sections/*.json       (individual section files)"
+          echo ""
+          echo "Source tracking:"
+          echo "  - {{output_dir}}/source_hashes.json    (for change detection)"
+          echo ""
+          ls -la "{{output_dir}}/"
+          echo ""

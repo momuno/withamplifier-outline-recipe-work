@@ -1,0 +1,1241 @@
+{
+  "_meta": {
+    "name": "withamplifier-content",
+    "description": "Complete source mapping for withamplifier.com content generation and validation",
+    "version": "2.0.0",
+    "target_site": "https://withamplifier.com",
+    "model": "claude-sonnet-4-20250514",
+    "max_response_tokens": 4000,
+    "temperature": 0.2,
+    "allowed_source_repos": [
+      "amplifier",
+      "amplifier-core",
+      "amplifier-foundation",
+      "amplifier-app-cli"
+    ],
+    "community_source_repos": [
+      "robotdad/amplifier-app-voice",
+      "robotdad/amplifier-app-transcribe",
+      "robotdad/amplifier-app-blog-creator",
+      "samueljklee/amplifier-app-tool-generator",
+      "samueljklee/amplifier-playground",
+      "payneio/lakehouse",
+      "DavidKoleczek/amplifier-app-session-analyzer",
+      "DavidKoleczek/amplifier-expert-cookbook",
+      "michaeljabbour/amplifier-bundle-memory",
+      "brycecutt-msft/amplifier-module-provider-bedrock",
+      "robotdad/amplifier-module-provider-openai-realtime"
+    ],
+    "accuracy_types": {
+      "verbatim": "Must exactly match source files - commands, URLs, technical terms, code snippets",
+      "synthesized": "Describes documented capabilities in own words - must be factually accurate but not word-for-word",
+      "marketing": "Creative copy that captures spirit of project - should align with source concepts but allows creative liberty"
+    },
+    "regeneration_notes": "This outline maps all data-section elements from withamplifier.com to source files. Each section has an accuracy_type that determines validation approach."
+  },
+
+  "content_sections": [
+    {
+      "id": "hero-tagline",
+      "data_section": "hero",
+      "web_element": {
+        "location": "Hero section",
+        "element": "Main headline",
+        "css_hint": "[data-section='hero'] h1, .hero-title"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "section": "Opening description",
+          "contribution": "Project positioning and value proposition",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Based on the README's description of Amplifier, write a compelling headline (5-8 words) that captures the core value proposition. Current website uses 'Build AI Your Way With Amplifier'. This is marketing copy so creative liberty is allowed, but it should accurately reflect what Amplifier is about - ownership, customization, transparency.",
+      "validation": {
+        "rules": [
+          {"type": "conceptual_alignment", "description": "Must accurately represent what Amplifier does"}
+        ]
+      },
+      "current_website_value": "Build AI Your Way With Amplifier"
+    },
+
+    {
+      "id": "hero-subtitle",
+      "data_section": "hero",
+      "web_element": {
+        "location": "Hero section",
+        "element": "Subtitle/tagline below headline",
+        "css_hint": "[data-section='hero'] .subtitle, [data-section='hero'] p:first-of-type"
+      },
+      "content_type": "prose",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Core philosophy of ownership and transparency",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "docs/BUNDLE_GUIDE.md",
+          "contribution": "Bundles as plain text files concept",
+          "relevance": "medium"
+        }
+      ],
+      "prompt": "Write a 1-2 sentence subtitle that emphasizes: (1) Your AI agent is a file you can read/write/share, (2) It's not a black box you rent, (3) It's a tool you own. Check source docs to verify these claims are accurate.",
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Claims about ownership and file-based config must be verifiable in docs"}
+        ]
+      },
+      "current_website_value": "Your AI agent is a file you can read, write, and share. Not a black box you rent. A tool you own."
+    },
+
+    {
+      "id": "hero-install-command",
+      "data_section": "hero",
+      "web_element": {
+        "location": "Hero section",
+        "element": "Code block with install command",
+        "css_hint": "[data-section='hero'] code, .install-command"
+      },
+      "content_type": "code",
+      "accuracy_type": "verbatim",
+      "validation_priority": "critical",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "section": "Installation or Quick Start",
+          "contribution": "Canonical uv tool install command",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the primary installation command for Amplifier CLI exactly as it appears in the README. This should be a 'uv tool install' command pointing to the GitHub repository. Output ONLY the command string, nothing else. Do not modify or 'improve' it.",
+      "validation": {
+        "rules": [
+          {"type": "exact_source_match", "description": "Command must exactly match what's in README.md"},
+          {"type": "url_reachable", "description": "The GitHub URL in the command must be accessible"}
+        ]
+      },
+      "current_website_value": "uv tool install git+https://github.com/microsoft/amplifier"
+    },
+
+    {
+      "id": "differentiation-headline",
+      "data_section": "differentiation",
+      "web_element": {
+        "location": "Differentiation section",
+        "element": "Section headline",
+        "css_hint": "[data-section='differentiation'] h2"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Transparency and observability philosophy",
+          "relevance": "medium"
+        },
+        {
+          "repo": "amplifier-core",
+          "file_path": "docs/DESIGN_PHILOSOPHY.md",
+          "contribution": "Kernel philosophy of transparency",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write a short punchy headline (3-5 words) that captures Amplifier's transparency philosophy. Current site uses 'No black boxes. Ever.' Verify this aligns with the documented design philosophy.",
+      "validation": {
+        "rules": [
+          {"type": "conceptual_alignment", "description": "Must align with documented transparency principles"}
+        ]
+      },
+      "current_website_value": "No black boxes. Ever."
+    },
+
+    {
+      "id": "differentiation-intro",
+      "data_section": "differentiation",
+      "web_element": {
+        "location": "Differentiation section",
+        "element": "Intro paragraph below headline",
+        "css_hint": "[data-section='differentiation'] > p"
+      },
+      "content_type": "prose",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Contrast with other AI tools",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-core",
+          "file_path": "docs/DESIGN_PHILOSOPHY.md",
+          "contribution": "Design principles around inspection and control",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write 1-2 sentences explaining that most AI tools hide how they work, but Amplifier shows you everything - you can inspect any component, swap any piece, own the whole stack. Verify these claims against the documentation.",
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Claims about inspection and swapping must be documented capabilities"}
+        ]
+      },
+      "current_website_value": "Most AI tools hide how they work. Amplifier shows you everything. Inspect any component, swap any piece, own the whole stack."
+    },
+
+    {
+      "id": "differentiation-use-any-model",
+      "data_section": "differentiation",
+      "web_element": {
+        "location": "Differentiation section",
+        "element": "First feature card - Use any model",
+        "css_hint": "[data-section='differentiation'] .feature-card:nth-child(1)"
+      },
+      "content_type": "structured",
+      "accuracy_type": "synthesized",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "docs/MODULES.md",
+          "section": "Provider Modules",
+          "contribution": "List of supported providers",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-core",
+          "file_path": "docs/contracts/PROVIDER_CONTRACT.md",
+          "contribution": "Provider abstraction design",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write content for the 'Use any model' feature card:\n- title: 'Use any model'\n- description: Explain that the model/provider is a swappable component - you can switch providers without rewriting anything, tools and workflows just work.\n\nVerify this claim by checking MODULES.md for multiple providers and PROVIDER_CONTRACT.md for the abstraction layer.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "source_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Provider swapping capability must be documented"},
+          {"type": "source_traceability", "description": "Must reference actual provider modules in MODULES.md"}
+        ]
+      },
+      "current_website_value": {
+        "title": "Use any model",
+        "description": "The model is a component, not a cage. Switch providers without rewriting anything. Your tools and workflows just work."
+      }
+    },
+
+    {
+      "id": "differentiation-see-everything",
+      "data_section": "differentiation",
+      "web_element": {
+        "location": "Differentiation section",
+        "element": "Second feature card - See everything",
+        "css_hint": "[data-section='differentiation'] .feature-card:nth-child(2)"
+      },
+      "content_type": "structured",
+      "accuracy_type": "synthesized",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier-core",
+          "file_path": "docs/HOOKS_API.md",
+          "contribution": "Hook system for observability",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier",
+          "file_path": "docs/USER_ONBOARDING.md",
+          "contribution": "Logging and debugging features",
+          "relevance": "medium"
+        },
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "context/KERNEL_PHILOSOPHY.md",
+          "section": "Observability principles",
+          "contribution": "Event-first observability philosophy",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write content for the 'See everything' feature card:\n- title: 'See everything'\n- description: Explain that you can watch it think - every decision is logged, every tool call is visible. When something breaks, you know exactly where and why.\n\nCRITICAL: Verify this claim is accurate by checking:\n1. HOOKS_API.md for observability hooks\n2. KERNEL_PHILOSOPHY.md for event-first observability\n3. Any logging/debugging documentation\n\nIf 'every decision logged' is overstated, adjust the claim to match reality.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "source_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Logging/observability claims must match actual capabilities"},
+          {"type": "no_exaggeration", "description": "Do not overstate what is actually logged or visible"}
+        ]
+      },
+      "current_website_value": {
+        "title": "See everything",
+        "description": "Watch it think. Every decision logged, every tool call visible. When something breaks, you know exactly where and why."
+      }
+    },
+
+    {
+      "id": "differentiation-own-your-setup",
+      "data_section": "differentiation",
+      "web_element": {
+        "location": "Differentiation section",
+        "element": "Third feature card - Own your setup",
+        "css_hint": "[data-section='differentiation'] .feature-card:nth-child(3)"
+      },
+      "content_type": "structured",
+      "accuracy_type": "synthesized",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "docs/BUNDLE_GUIDE.md",
+          "contribution": "Bundles as plain text files",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Open source nature",
+          "relevance": "medium"
+        }
+      ],
+      "prompt": "Write content for the 'Own your setup' feature card:\n- title: 'Own your setup'\n- description: Explain that your agent is a file you can read, version, and share. Not a subscription, not a black box - it's yours.\n\nVerify by checking BUNDLE_GUIDE.md to confirm agents/bundles are plain text files that can be versioned and shared.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "source_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "File-based config must be documented"},
+          {"type": "source_traceability", "description": "Reference bundle documentation"}
+        ]
+      },
+      "current_website_value": {
+        "title": "Own your setup",
+        "description": "Your agent is a file you can read, version, and share. Not a subscription. Not a black box. Yours."
+      }
+    },
+
+    {
+      "id": "platform-headline",
+      "data_section": "platform",
+      "web_element": {
+        "location": "Platform section",
+        "element": "Section headline",
+        "css_hint": "[data-section='platform'] h2"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Modular architecture description",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write a headline that captures the composable/modular nature. Current site uses 'Built from composable pieces.'",
+      "validation": {
+        "rules": [
+          {"type": "conceptual_alignment", "description": "Must reflect documented modularity"}
+        ]
+      },
+      "current_website_value": "Built from composable pieces."
+    },
+
+    {
+      "id": "platform-description",
+      "data_section": "platform",
+      "web_element": {
+        "location": "Platform section",
+        "element": "Section description paragraph",
+        "css_hint": "[data-section='platform'] > p"
+      },
+      "content_type": "prose",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "docs/MODULES.md",
+          "contribution": "Module types and their roles",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-core",
+          "file_path": "README.md",
+          "contribution": "Core architecture description",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write 2-3 sentences explaining the composable architecture: Providers connect to LLMs, Tools give capabilities, Workflows orchestrate tasks. Each piece works independently but composes into something powerful. Emphasize it's a platform, not just an API wrapper. Verify each component type exists in documentation.",
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Each component type mentioned must exist in MODULES.md"}
+        ]
+      },
+      "current_website_value": "Providers connect to any LLM. Tools give agents capabilities. Workflows orchestrate complex tasks. Each piece works independently, but they compose into something powerful. That's why it's a platform, not just a wrapper around someone else's API."
+    },
+
+    {
+      "id": "platform-providers",
+      "data_section": "platform",
+      "web_element": {
+        "location": "Platform section",
+        "element": "Providers card with example chips",
+        "css_hint": "[data-section='platform'] .providers-card"
+      },
+      "content_type": "structured",
+      "accuracy_type": "verbatim",
+      "validation_priority": "critical",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "docs/MODULES.md",
+          "section": "Provider Modules",
+          "contribution": "List of supported providers",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the Providers component for the platform section:\n- title: 'Providers'\n- description: 'Connect to any LLM. Anthropic, OpenAI, Google, Azure, AWS, Ollama, or bring your own.'\n- examples: List of provider names to show as chips (e.g., Claude, GPT-4, Gemini, Llama)\n\nCRITICAL: Only list providers that are ACTUALLY documented in MODULES.md. The example chips must correspond to real supported providers.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "examples": {"type": "array", "items": {"type": "string"}},
+          "source_ref": {"type": "string"}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "exact_source_match", "description": "Provider names must match MODULES.md"},
+          {"type": "no_fabrication", "description": "Do not list providers not in MODULES.md"}
+        ]
+      },
+      "current_website_value": {
+        "title": "Providers",
+        "description": "Connect to any LLM. Anthropic, OpenAI, Google, Azure, AWS, Ollama, or bring your own.",
+        "examples": ["Claude", "GPT-4", "Gemini", "Llama"]
+      }
+    },
+
+    {
+      "id": "platform-tools",
+      "data_section": "platform",
+      "web_element": {
+        "location": "Platform section",
+        "element": "Tools card with example chips",
+        "css_hint": "[data-section='platform'] .tools-card"
+      },
+      "content_type": "structured",
+      "accuracy_type": "verbatim",
+      "validation_priority": "critical",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "docs/MODULES.md",
+          "section": "Tool Modules",
+          "contribution": "List of available tools",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the Tools component for the platform section:\n- title: 'Tools'\n- description: 'Give your agent capabilities. File access, web search, code execution, or build your own.'\n- examples: List of tool names to show as chips (e.g., filesystem, bash, web, grep)\n\nCRITICAL: Only list tools that are ACTUALLY documented in MODULES.md.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "examples": {"type": "array", "items": {"type": "string"}},
+          "source_ref": {"type": "string"}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "exact_source_match", "description": "Tool names must match MODULES.md"},
+          {"type": "no_fabrication", "description": "Do not list tools not in MODULES.md"}
+        ]
+      },
+      "current_website_value": {
+        "title": "Tools",
+        "description": "Give your agent capabilities. File access, web search, code execution, or build your own.",
+        "examples": ["filesystem", "bash", "web", "grep"]
+      }
+    },
+
+    {
+      "id": "platform-agents",
+      "data_section": "platform",
+      "web_element": {
+        "location": "Platform section",
+        "element": "Agents card with example chips",
+        "css_hint": "[data-section='platform'] .agents-card"
+      },
+      "content_type": "structured",
+      "accuracy_type": "verbatim",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "docs/BUNDLE_GUIDE.md",
+          "contribution": "Agent/bundle concept",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "agents/",
+          "contribution": "Example agents",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the Agents component for the platform section:\n- title: 'Agents'\n- description: 'Specialized personas for specific tasks. Security reviewers, writers, architects, analysts.'\n- examples: List of agent names to show as chips\n\nCheck amplifier-foundation for actual agent names. The examples should be real agents that exist.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "examples": {"type": "array", "items": {"type": "string"}},
+          "source_ref": {"type": "string"}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "source_traceability", "description": "Agent names should correspond to real agents in foundation"}
+        ]
+      },
+      "current_website_value": {
+        "title": "Agents",
+        "description": "Specialized personas for specific tasks. Security reviewers, writers, architects, analysts.",
+        "examples": ["explorer", "architect", "reviewer"]
+      }
+    },
+
+    {
+      "id": "platform-recipes",
+      "data_section": "platform",
+      "web_element": {
+        "location": "Platform section",
+        "element": "Recipes card with example chips",
+        "css_hint": "[data-section='platform'] .recipes-card"
+      },
+      "content_type": "structured",
+      "accuracy_type": "verbatim",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "docs/USER_ONBOARDING.md",
+          "section": "Recipes",
+          "contribution": "Recipe system description",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the Recipes component for the platform section:\n- title: 'Recipes'\n- description: 'Multi-step workflows with checkpoints. Chain agents together, add approval gates, resume anytime.'\n- examples: List of recipe names to show as chips\n\nVerify recipes capability is documented and list real example recipes if available.",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "examples": {"type": "array", "items": {"type": "string"}},
+          "source_ref": {"type": "string"}
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Recipe capabilities must be documented"}
+        ]
+      },
+      "current_website_value": {
+        "title": "Recipes",
+        "description": "Multi-step workflows with checkpoints. Chain agents together, add approval gates, resume anytime.",
+        "examples": ["code-review", "deploy"]
+      }
+    },
+
+    {
+      "id": "demo-headline",
+      "data_section": "demo",
+      "web_element": {
+        "location": "Demo section",
+        "element": "Section headline",
+        "css_hint": "[data-section='demo'] h2"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Write a headline for the demo section. Current: 'See how it works.'",
+      "validation": {
+        "rules": []
+      },
+      "current_website_value": "See how it works."
+    },
+
+    {
+      "id": "demo-description",
+      "data_section": "demo",
+      "web_element": {
+        "location": "Demo section",
+        "element": "Description paragraph",
+        "css_hint": "[data-section='demo'] > p"
+      },
+      "content_type": "prose",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier-core",
+          "file_path": "docs/HOOKS_API.md",
+          "contribution": "Logging and observability",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write 2-3 sentences explaining that you run one command and watch the entire flow. Every tool call is logged, every decision explained. You're watching a transparent system that shows how it thinks. Verify logging capabilities exist.",
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Logging claims must match actual capabilities"}
+        ]
+      },
+      "current_website_value": "Run one command and watch the entire flow. Every tool call is logged. Every decision is explained. You're not looking at a black box that gives you answers - you're watching a transparent system that shows you how it thinks."
+    },
+
+    {
+      "id": "demo-feature-bullets",
+      "data_section": "demo",
+      "web_element": {
+        "location": "Demo section",
+        "element": "Feature bullet points next to terminal",
+        "css_hint": "[data-section='demo'] .feature-list"
+      },
+      "content_type": "list",
+      "accuracy_type": "synthesized",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier-core",
+          "file_path": "docs/HOOKS_API.md",
+          "contribution": "Observability features",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier",
+          "file_path": "docs/MODULES.md",
+          "section": "Provider Modules",
+          "contribution": "Provider swapping capability",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Generate 3-4 short feature bullets for the demo section:\n1. 'Every tool call logged'\n2. 'Every decision explained'\n3. 'Swap models mid-session'\n\nVerify each claim:\n- Tool call logging: Check HOOKS_API.md\n- Decision explanations: Check if this is actually a feature\n- Model swapping: Check provider switching capability",
+      "output_schema": {
+        "type": "array",
+        "items": {"type": "string"}
+      },
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Each bullet must be a real capability"}
+        ]
+      },
+      "current_website_value": [
+        "Every tool call logged",
+        "Every decision explained",
+        "Swap models mid-session"
+      ]
+    },
+
+    {
+      "id": "demo-terminal-example",
+      "data_section": "demo",
+      "web_element": {
+        "location": "Demo section",
+        "element": "Terminal/code example showing amplifier in action",
+        "css_hint": "[data-section='demo'] pre, [data-section='demo'] .terminal"
+      },
+      "content_type": "code",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "section": "Usage examples",
+          "contribution": "Example command patterns",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-app-cli",
+          "file_path": "README.md",
+          "contribution": "CLI usage patterns",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Generate a realistic terminal example showing Amplifier in action. Should demonstrate:\n1. Running an amplifier command\n2. Showing provider info\n3. Showing tool usage\n4. Showing meaningful output\n\nThe example should be representative but doesn't need to be a real transcript. Commands like 'amplifier run' and 'amplifier provider use' should match actual CLI syntax from docs.",
+      "validation": {
+        "rules": [
+          {"type": "command_syntax", "description": "CLI commands must match actual syntax"},
+          {"type": "representative", "description": "Output should be realistic even if not verbatim"}
+        ]
+      },
+      "current_website_value": "$ amplifier run \"Review this PR for security issues\"..."
+    },
+
+    {
+      "id": "bundles-headline",
+      "data_section": "bundles",
+      "web_element": {
+        "location": "Bundles section",
+        "element": "Section headline",
+        "css_hint": "[data-section='bundles'] h2"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Write a headline for the bundles section. Current: 'Capture your workflow as code.'",
+      "validation": {
+        "rules": []
+      },
+      "current_website_value": "Capture your workflow as code."
+    },
+
+    {
+      "id": "bundles-description",
+      "data_section": "bundles",
+      "web_element": {
+        "location": "Bundles section",
+        "element": "Description paragraph",
+        "css_hint": "[data-section='bundles'] > p"
+      },
+      "content_type": "prose",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "docs/BUNDLE_GUIDE.md",
+          "contribution": "Bundle concept and philosophy",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Write 2-3 sentences explaining bundles: A bundle is your entire setup in plain text - providers, tools, behaviors. As you work, you adapt it. As you share it, others adapt theirs. Verify this matches the BUNDLE_GUIDE.md description.",
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Bundle description must match documentation"}
+        ]
+      },
+      "current_website_value": "A bundle is your entire setup in plain text. The providers you trust, the tools you need, the behaviors you've refined. As you work, you adapt it. As you share it, others adapt theirs. The more you use it, the more it becomes yours."
+    },
+
+    {
+      "id": "bundles-example-code",
+      "data_section": "bundles",
+      "web_element": {
+        "location": "Bundles section",
+        "element": "Bundle markdown example code block",
+        "css_hint": "[data-section='bundles'] pre, [data-section='bundles'] .code-example"
+      },
+      "content_type": "code",
+      "accuracy_type": "verbatim",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "docs/BUNDLE_GUIDE.md",
+          "contribution": "Bundle file format and examples",
+          "relevance": "high"
+        },
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "bundles/",
+          "contribution": "Real bundle examples",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Generate a representative bundle.md example that shows the format. Include:\n- YAML frontmatter with bundle metadata\n- providers list\n- tools list\n- behaviors list\n- Markdown content section\n\nThe format MUST match what's documented in BUNDLE_GUIDE.md. Field names and structure must be accurate.",
+      "validation": {
+        "rules": [
+          {"type": "format_match", "description": "YAML structure must match BUNDLE_GUIDE.md specification"},
+          {"type": "valid_syntax", "description": "Must be valid YAML + Markdown"}
+        ]
+      },
+      "current_website_value": "security-reviewer.md with bundle frontmatter..."
+    },
+
+    {
+      "id": "bundles-feature-bullets",
+      "data_section": "bundles",
+      "web_element": {
+        "location": "Bundles section",
+        "element": "Feature bullet points",
+        "css_hint": "[data-section='bundles'] .feature-list"
+      },
+      "content_type": "list",
+      "accuracy_type": "synthesized",
+      "validation_priority": "medium",
+      "sources": [
+        {
+          "repo": "amplifier-foundation",
+          "file_path": "docs/BUNDLE_GUIDE.md",
+          "contribution": "Bundle benefits and capabilities",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Generate 4 short feature bullets for bundles:\n1. 'Debug in minutes' - logging/tracing\n2. 'Swap anything' - modularity\n3. 'Share like code' - version control\n4. 'Your data stays yours' - privacy/control\n\nVerify each claim against documentation.",
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {"type": "string"},
+            "description": {"type": "string"}
+          }
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "factual_accuracy", "description": "Each bullet must be supported by docs"}
+        ]
+      },
+      "current_website_value": [
+        {"title": "Debug in minutes", "description": "Every tool call logged. When it breaks, trace the exact line that failed."},
+        {"title": "Swap anything", "description": "Change models, tools, providers. Your setup evolves as fast as AI does."},
+        {"title": "Share like code", "description": "Git push. PR review. Hand it to a teammate. No screenshots, no wikis."},
+        {"title": "Your data stays yours", "description": "Run locally. Inspect every call. Add approval gates. Nothing leaves without your say."}
+      ]
+    },
+
+    {
+      "id": "ecosystem-headline",
+      "data_section": "ecosystem",
+      "web_element": {
+        "location": "Ecosystem section",
+        "element": "Section headline",
+        "css_hint": "[data-section='ecosystem'] h2"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Write a headline for the ecosystem/community section. Current: 'Built by different minds. Ready for yours.'",
+      "validation": {
+        "rules": []
+      },
+      "current_website_value": "Built by different minds. Ready for yours."
+    },
+
+    {
+      "id": "ecosystem-description",
+      "data_section": "ecosystem",
+      "web_element": {
+        "location": "Ecosystem section",
+        "element": "Description paragraph",
+        "css_hint": "[data-section='ecosystem'] > p"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Write 2-3 sentences about the community ecosystem. Bundles carry someone's approach to solving problems. Install theirs, add your perspective, share back.",
+      "validation": {
+        "rules": [
+          {"type": "conceptual_alignment", "description": "Should reflect community/sharing philosophy"}
+        ]
+      },
+      "current_website_value": "Every bundle carries someone's approach to solving problems. Install theirs. Add your perspective. When you share back, you're teaching others a new way to think. The more perspectives, the smarter the community."
+    },
+
+    {
+      "id": "ecosystem-bundles-carousel",
+      "data_section": "ecosystem",
+      "web_element": {
+        "location": "Ecosystem section",
+        "element": "Bundle cards carousel",
+        "css_hint": "[data-section='ecosystem'] .carousel, [data-section='ecosystem'] .bundle-card"
+      },
+      "content_type": "structured_list",
+      "accuracy_type": "verbatim",
+      "validation_priority": "critical",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "docs/MODULES.md",
+          "section": "Community Contributions",
+          "contribution": "List of community bundles, apps, and modules",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the list of community-contributed bundles, apps, and modules from MODULES.md for the ecosystem carousel. For each item, include:\n- name: Display name\n- description: Short description\n- author: GitHub username/org\n- github_url: Full GitHub URL\n- category: 'bundle', 'app', 'module', or 'provider'\n- status: 'validated', 'popular', 'experimental', or 'community'\n\nCRITICAL RULES:\n1. ONLY include items that are ACTUALLY LISTED in MODULES.md\n2. Do NOT invent bundles or use placeholder names\n3. Do NOT include fictional authors like '@amplifier-labs', '@apicraft', '@dataflow' unless they exist in MODULES.md\n4. All github_url values must be real, accessible URLs\n5. If MODULES.md has fewer items than the current website shows, that's correct - only show real items",
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "description": {"type": "string"},
+            "author": {"type": "string"},
+            "github_url": {"type": "string"},
+            "category": {"type": "string"},
+            "status": {"type": "string"}
+          }
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "urls_exist", "description": "All GitHub URLs must return HTTP 200"},
+          {"type": "source_traceability", "description": "Every item must be in MODULES.md"},
+          {"type": "no_fabrication", "description": "Do not invent items not in source"}
+        ]
+      },
+      "known_issues": [
+        "Current website shows many fictional bundles with made-up authors",
+        "MODULES.md has real community contributions that should be used instead",
+        "Some current items like '@amplifier-labs', '@apicraft', '@dataflow' do not exist"
+      ]
+    },
+
+    {
+      "id": "cta-headline",
+      "data_section": "cta",
+      "web_element": {
+        "location": "CTA section",
+        "element": "Call to action headline",
+        "css_hint": "[data-section='cta'] h2"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Write a short call-to-action headline. Current: 'Ready to build?'",
+      "validation": {
+        "rules": []
+      },
+      "current_website_value": "Ready to build?"
+    },
+
+    {
+      "id": "cta-install-command",
+      "data_section": "cta",
+      "web_element": {
+        "location": "CTA section",
+        "element": "Install command code block",
+        "css_hint": "[data-section='cta'] code"
+      },
+      "content_type": "code",
+      "accuracy_type": "verbatim",
+      "validation_priority": "critical",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "section": "Installation",
+          "contribution": "Install command",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the installation command exactly as it appears in README.md. Must match hero-install-command.",
+      "validation": {
+        "rules": [
+          {"type": "exact_source_match", "description": "Must match README.md exactly"},
+          {"type": "consistency", "reference": "hero-install-command", "description": "Must match hero section"}
+        ]
+      },
+      "current_website_value": "uv tool install git+https://github.com/microsoft/amplifier"
+    },
+
+    {
+      "id": "cta-links",
+      "data_section": "cta",
+      "web_element": {
+        "location": "CTA section",
+        "element": "Quick start and support links",
+        "css_hint": "[data-section='cta'] a"
+      },
+      "content_type": "structured_list",
+      "accuracy_type": "verbatim",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Documentation links",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract the CTA section links:\n- Quick Start Guide link\n- Get support link\n\nVerify these URLs are valid and point to real resources.",
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {"type": "string"},
+            "url": {"type": "string"}
+          }
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "url_reachable", "description": "All URLs must be accessible"}
+        ]
+      },
+      "current_website_value": [
+        {"text": "Quick Start Guide", "url": "Learn more"},
+        {"text": "Questions? Get support", "url": "Get help"}
+      ]
+    },
+
+    {
+      "id": "footer-tagline",
+      "data_section": "footer",
+      "web_element": {
+        "location": "Footer",
+        "element": "Footer tagline",
+        "css_hint": "footer .tagline"
+      },
+      "content_type": "prose",
+      "accuracy_type": "marketing",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Write a short footer tagline. Current: 'Build AI Your Way.'",
+      "validation": {
+        "rules": []
+      },
+      "current_website_value": "Build AI Your Way."
+    },
+
+    {
+      "id": "footer-learn-links",
+      "data_section": "footer",
+      "web_element": {
+        "location": "Footer",
+        "element": "Learn section links",
+        "css_hint": "footer .learn-links"
+      },
+      "content_type": "structured_list",
+      "accuracy_type": "verbatim",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Documentation links",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract footer Learn section links:\n- How it works\n- Documentation\n- Updates\n\nVerify each URL is valid.",
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {"type": "string"},
+            "url": {"type": "string"}
+          }
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "url_reachable", "description": "All URLs must be accessible"}
+        ]
+      },
+      "current_website_value": [
+        {"text": "How it works", "url": "#"},
+        {"text": "Documentation", "url": "#"},
+        {"text": "Updates", "url": "#"}
+      ]
+    },
+
+    {
+      "id": "footer-opensource-links",
+      "data_section": "footer",
+      "web_element": {
+        "location": "Footer",
+        "element": "Open Source section links",
+        "css_hint": "footer .opensource-links"
+      },
+      "content_type": "structured_list",
+      "accuracy_type": "verbatim",
+      "validation_priority": "critical",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "GitHub and contributing links",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract footer Open Source section links:\n- GitHub: https://github.com/microsoft/amplifier\n- Contributing: Link to CONTRIBUTING.md or contribution guide\n\nVerify each URL is valid and accessible.",
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {"type": "string"},
+            "url": {"type": "string"}
+          }
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "url_reachable", "description": "All URLs must return 200"}
+        ]
+      },
+      "current_website_value": [
+        {"text": "GitHub", "url": "https://github.com/microsoft/amplifier"},
+        {"text": "Contributing", "url": "#"}
+      ],
+      "known_issues": [
+        "Contributing link may point to 404 - verify CONTRIBUTING.md location"
+      ]
+    },
+
+    {
+      "id": "footer-community-links",
+      "data_section": "footer",
+      "web_element": {
+        "location": "Footer",
+        "element": "Community section links",
+        "css_hint": "footer .community-links"
+      },
+      "content_type": "structured_list",
+      "accuracy_type": "verbatim",
+      "validation_priority": "high",
+      "sources": [
+        {
+          "repo": "amplifier",
+          "file_path": "README.md",
+          "contribution": "Community links",
+          "relevance": "high"
+        }
+      ],
+      "prompt": "Extract footer Community section links:\n- Discussions: GitHub Discussions URL (if enabled)\n- Report an issue: GitHub Issues URL\n- Get help: Support link\n\nCRITICAL: Verify GitHub Discussions is actually enabled for the repo. If not, recommend removal or alternative.",
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {"type": "string"},
+            "url": {"type": "string"},
+            "exists": {"type": "boolean"},
+            "recommendation": {"type": "string"}
+          }
+        }
+      },
+      "validation": {
+        "rules": [
+          {"type": "url_reachable", "description": "All URLs must be accessible"}
+        ]
+      },
+      "current_website_value": [
+        {"text": "Discussions", "url": "#"},
+        {"text": "Report an issue", "url": "https://github.com/microsoft/amplifier/issues"},
+        {"text": "Get help", "url": "#"}
+      ],
+      "known_issues": [
+        "Discussions link returns 404 - may not be enabled",
+        "Get help link destination unclear"
+      ]
+    },
+
+    {
+      "id": "footer-attribution",
+      "data_section": "footer",
+      "web_element": {
+        "location": "Footer",
+        "element": "Attribution line",
+        "css_hint": "footer .attribution"
+      },
+      "content_type": "prose",
+      "accuracy_type": "verbatim",
+      "validation_priority": "low",
+      "sources": [],
+      "prompt": "Return the attribution text. Should reference Microsoft Research.",
+      "validation": {
+        "rules": []
+      },
+      "current_website_value": "Microsoft Research · Open Source"
+    }
+  ],
+
+  "validation_summary": {
+    "sections_by_priority": {
+      "critical": [
+        "hero-install-command",
+        "cta-install-command",
+        "ecosystem-bundles-carousel",
+        "footer-opensource-links",
+        "platform-providers",
+        "platform-tools"
+      ],
+      "high": [
+        "differentiation-use-any-model",
+        "differentiation-see-everything",
+        "differentiation-own-your-setup",
+        "platform-agents",
+        "platform-recipes",
+        "bundles-example-code",
+        "demo-feature-bullets",
+        "footer-community-links",
+        "footer-learn-links",
+        "cta-links"
+      ],
+      "medium": [
+        "hero-subtitle",
+        "differentiation-intro",
+        "platform-description",
+        "demo-description",
+        "demo-terminal-example",
+        "bundles-description",
+        "bundles-feature-bullets"
+      ],
+      "low": [
+        "hero-tagline",
+        "differentiation-headline",
+        "platform-headline",
+        "demo-headline",
+        "bundles-headline",
+        "ecosystem-headline",
+        "ecosystem-description",
+        "cta-headline",
+        "footer-tagline",
+        "footer-attribution"
+      ]
+    },
+    "accuracy_type_summary": {
+      "verbatim": "Commands, URLs, technical names, code examples - MUST match sources exactly",
+      "synthesized": "Describes capabilities in own words - must be factually accurate, verify claims against docs",
+      "marketing": "Creative copy - should align with project spirit but allows creative liberty"
+    },
+    "known_issues": [
+      "ecosystem-bundles-carousel shows fictional bundles that don't exist in MODULES.md",
+      "Several footer links (Discussions, Contributing) return 404",
+      "differentiation-see-everything claim 'every decision logged' may be overstated - verify",
+      "Some platform examples may not match actual module names in MODULES.md"
+    ]
+  }
+}
