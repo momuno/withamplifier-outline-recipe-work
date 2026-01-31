@@ -18,7 +18,7 @@ The outline includes some useful metadata:
 
 ## Getting Started
 
-1. Load the sessions for reference as needed
+1. Load the sessions for reference as needed (not included in this repo...)
 2. Review the example output and see if it can be ingested into your website
 
 ## Iterate on the Recipe
