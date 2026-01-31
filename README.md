@@ -1,6 +1,6 @@
 # What's in This Repo
 
-Three documents (attached) that work together:
+Three documents that work together:
 
 1. Outline (withamplifier-content.json) - Maps to the existing content section of withamplifier.com
 2. Recipe (website-content-generation.yaml) - Creates website content from the outline 
